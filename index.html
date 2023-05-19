@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Snake Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+    }
+    #game-board {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f2f2f2;
+    }
+    .dot {
+      width: 5%;
+      padding-bottom: 5%;
+      background-color: #000;
+      position: absolute;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-board"></div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const gameBoard = document.getElementById('game-board');
+      const dotSize = 5; // Percentage of the game board size
+      const initialSnake = [{ x: 0, y: 0 }];
+      let direction = 'right';
+      let snake = [...initialSnake];
+      let apple = getRandomDotPosition();
+      let gameLoop;
+
+      function getRandomDotPosition() {
+        return {
+          x: Math.floor(Math.random() * (100 / dotSize)) * dotSize,
+          y: Math.floor(Math.random() * (100 / dotSize)) * dotSize
+        };
+      }
+
+      function drawDot(dot, color) {
+        const dotElement = document.createElement('div');
+        dotElement.className = 'dot';
+        dotElement.style.backgroundColor = color;
+        dotElement.style.left = dot.x + '%';
+        dotElement.style.top = dot.y + '%';
+        gameBoard.appendChild(dotElement);
+      }
+
+      function clearBoard() {
+        while (gameBoard.firstChild) {
+          gameBoard.firstChild.remove();
+        }
+      }
+
+      function update() {
+        clearBoard();
+
+        const head = { x: snake[0].x, y: snake[0].y };
+        switch (direction) {
+          case 'up':
+            head.y -= dotSize;
+            break;
+          case 'down':
+            head.y += dotSize;
+            break;
+          case 'left':
+            head.x -= dotSize;
+            break;
+          case 'right':
+            head.x += dotSize;
+            break;
+        }
+
+        snake.unshift(head);
+
+        if (head.x === apple.x && head.y === apple.y) {
+          apple = getRandomDotPosition();
+        } else {
+          snake.pop();
+        }
+
+        snake.forEach((dot, index) => {
+          if (index === 0) {
+            drawDot(dot, '#ff0000'); // Draw head in red color
+          } else {
+            drawDot(dot, '#000000'); // Draw body in black color
+          }
+        });
+
+        drawDot(apple, '#00ff00'); // Draw apple in green color
+
+        if (
+          head.x < 0 ||
+          head.x >= 100 ||
+          head.y < 0 ||
+          head.y >= 100 ||
+          snake.some((dot, index) => index !== 0 && dot.x === head.x && dot.y === head.y)
+        ) {
+          clearInterval(gameLoop);
+          alert('Game over!');
+          snake = [...initialSnake];
+          direction = 'right';
+          apple = getRandomDotPosition();
+          gameLoop = setInterval(update, 200); // Restart the game
+        }
+      }
+
+      function onKeyDown(event) {
+        const key = event.keyCode;
+        switch (key) {
+          case 37:
+            if (direction !== 'right') {
+              direction = 'left';
+            }
+            break;
+          case 38:
+            if (direction !== 'down') {
+              direction = 'up';
+            }
+            break;
+          case 39:
+            if (direction !== 'left') {
+              direction = 'right';
+            }
+            break;
+          case 40:
+            if (direction !== 'up') {
+              direction = 'down';
+            }
+            break;
+        }
+      }
+
+      document.addEventListener('keydown', onKeyDown);
+
+      gameLoop = setInterval(update, 200); // Update every 200ms for slower speed
+    });
+  </script>
+</body>
+</html>
